@@ -21,6 +21,7 @@ import {
 } from 'discord-interactions';
 */
 import { readFileSync } from 'fs';
+
 process.loadEnvFile();
 
 //const app = express();
@@ -31,6 +32,7 @@ const publicKey = process.env.PUBLICKEY;
 
 const webhookUrl = new URL(process.env.HOOKURL);
 const logPath = process.env.LOGFILE;
+const timezone = process.env.TIMEZONE;
 var lastHash = '';
 var lastIndex = 0;
 /*
@@ -91,11 +93,12 @@ function parseLog(isOut) {
 	var index = lastIndex
 	for (let i = index; i < lines.length; i++) {
 		console.log(i + ': ' + lines[i])
-		formatCheck: if (lines[i].startsWith('[FileLog') && lines[i].trim().endsWith(')') == true) {
+		formatCheck: if (lines[i].startsWith('[FileLog') && lines[i].trim().endsWith(')') == true && lines[i].includes('[Hint]:') == false) {
 			//get the time and date
 			var datetime = lines[i].split(' ')
 			var date = datetime[2] + 'T' + datetime[3].substr(0, datetime[3].length-2).replace(',', '.') + 'Z'
 			var stamp = Date.parse(date)
+			stamp -= 1000 * 60 * 60 * timezone
 			//some shenanigans because Discord timestamps are shorter than unix
 			var DiscordStamp = '<t:' + stamp
 			DiscordStamp = DiscordStamp.substr(0, 13) + ':t>'
