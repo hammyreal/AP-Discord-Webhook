@@ -65,8 +65,6 @@ clientStuff();
 async function clientStuff() {
 
 	var client = await new ArchipelagoClient("wss://" + roomURL, name, pass);
-	await sleep(3000);
-	console.log(client.players)
 }
 /*
 while (true) {

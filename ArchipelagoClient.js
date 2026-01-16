@@ -1,5 +1,8 @@
 
-import * as crypto from 'crypto'
+import * as crypto from 'crypto';
+import { Logger } from './logger.js';
+
+//to get a location/item 
 
 export class ArchipelagoClient {
     constructor(url, name, pass) {
@@ -8,6 +11,7 @@ export class ArchipelagoClient {
         this.socket.addEventListener('open', event => {
             console.log("connected");
             this.connect(name, pass);
+            this.logger = new Logger();
         });
 
         this.socket.addEventListener('message', event => {
@@ -16,6 +20,16 @@ export class ArchipelagoClient {
             console.log(data[0]);
             if (data[0].cmd == 'Connected') {
                 this.players = data[0].players;
+                var getPackagePayload = {
+                    'cmd': 'GetDataPackage'
+                }
+                this.socket.send(JSON.stringify([getPackagePayload]));
+            } else if (data[0].cmd == 'DataPackage') {
+                for (var [name, [data]] of data[0].data.games) {
+                    console.log(data)
+                }
+                //var games = JSON.parse(data[0].games)
+                //console.log(games.Terraria);
             }
             switch (data[0].type) {
                 case 'ItemSend':
