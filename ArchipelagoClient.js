@@ -13,15 +13,26 @@ export class ArchipelagoClient {
         this.socket.addEventListener('message', event => {
             //console.log("received message:", event.data);
             var data = JSON.parse(event.data);
-            if (data.cmd == 'PrintJSON' && data.type == 'ItemSend') {
-                console.log(data.data);
+            console.log(data[0]);
+            if (data[0].cmd == 'Connected') {
+                this.players = data[0].players;
+            }
+            switch (data[0].type) {
+                case 'ItemSend':
+                    var item = data[0].item.item;
+                    var location = data[0].item.location;
+                    var sender = data[0].item.player;
+                    var receiver = data[0].receiving;
+                    var flags = data[0].item.flags;
+                    break;
+                //case
             }
             
 
         });
 
         this.socket.addEventListener('close', event => {
-            console.log("socket closed:", event.reason, event.reason);
+            console.log("socket closed:", event.code, event.reason);
         });
 
         this.socket.addEventListener('error', error => {
