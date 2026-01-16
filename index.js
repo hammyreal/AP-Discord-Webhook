@@ -21,6 +21,7 @@ import {
 } from 'discord-interactions';
 */
 import { readFileSync } from 'fs';
+import { ArchipelagoClient } from './ArchipelagoClient.js';
 
 process.loadEnvFile();
 
@@ -29,6 +30,10 @@ const PORT = process.env.PORT;
 
 const publicKey = process.env.PUBLICKEY;
 //const appID
+
+const roomURL = process.env.ROOM;
+const name = process.env.SLOTNAME;
+const pass = process.env.PASSWORD;
 
 const webhookUrl = new URL(process.env.HOOKURL);
 const logPath = process.env.LOGFILE;
@@ -56,12 +61,18 @@ app.listen(PORT, () => {
 })
 */
 
+clientStuff();
+async function clientStuff() {
+
+	var client = await new ArchipelagoClient("wss://" + roomURL, name, pass);
+}
+/*
 while (true) {
 	compareHash();
 
 	await sleep(10000);
 }
-
+*/
 function sleep(ms) {
 	return new Promise((resolve) => {
 		setTimeout(resolve, ms);
