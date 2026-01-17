@@ -17,7 +17,7 @@ export class ArchipelagoClient {
         this.socket.addEventListener('message', event => {
             //console.log("received message:", event.data);
             var data = JSON.parse(event.data);
-            console.log(data[0]);
+            //console.log(data[0]);
             if (data[0].cmd == 'Connected') {
                 this.players = data[0].players;
                 var getPackagePayload = {
@@ -25,9 +25,16 @@ export class ArchipelagoClient {
                 }
                 this.socket.send(JSON.stringify([getPackagePayload]));
             } else if (data[0].cmd == 'DataPackage') {
-                for (var [name, [data]] of data[0].data.games) {
-                    console.log(data)
+                var i = 0;
+                for (var [name, gameData] of Object.entries(data[0].data.games)) {
+                    console.log(name)
+                    this.games = new Array();
+                    this.games[i] = {item_name_to_id:{}, location_name_to_id:{}}
+                    this.games[i].item_name_to_id = this.swap(gameData.item_name_to_id);
+                    this.games[i].location_name_to_id = this.swap(gameData.location_name_to_id)
+                    i++;
                 }
+                
                 //var games = JSON.parse(data[0].games)
                 //console.log(games.Terraria);
             }
@@ -38,9 +45,14 @@ export class ArchipelagoClient {
                     var sender = data[0].item.player;
                     var receiver = data[0].receiving;
                     var flags = data[0].item.flags;
+                    console.log(data[0]);
                     break;
                 //case
             }
+            
+                
+            
+            
             
 
         });
@@ -71,5 +83,14 @@ export class ArchipelagoClient {
         };
 
         this.socket.send(JSON.stringify([payload]));
+    }
+
+    // https://stackoverflow.com/questions/23013573/swap-key-with-value-in-object
+    swap(json) {
+        var ret = {};
+        for (var key in json) {
+            ret[json[key]] = key;
+        }
+        return ret;
     }
 }
