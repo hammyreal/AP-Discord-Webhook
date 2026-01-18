@@ -7,6 +7,19 @@ import { Logger } from './logger.js';
 export class ArchipelagoClient {
     constructor(url, name, pass) {
         this.socket = new WebSocket(url);
+        process.loadEnvFile();
+        this.PORT = process.env.PORT;
+
+        this.publicKey = process.env.PUBLICKEY;
+        //const appID
+
+        this.roomURL = process.env.ROOM;
+        this.name = process.env.SLOTNAME;
+        this.pass = process.env.PASSWORD;
+
+        this.webhookUrl = new URL(process.env.HOOKURL);
+        this.logPath = process.env.LOGFILE;
+        this.timezone = process.env.TIMEZONE;
 
         this.socket.addEventListener('open', event => {
             console.log("connected");
@@ -26,26 +39,37 @@ export class ArchipelagoClient {
                 this.socket.send(JSON.stringify([getPackagePayload]));
             } else if (data[0].cmd == 'DataPackage') {
                 var i = 0;
+                this.games = new Array();
+                //console.log(data[0].data.games);
                 for (var [name, gameData] of Object.entries(data[0].data.games)) {
-                    console.log(name)
-                    this.games = new Array();
+                    //console.log(name, i);
+                    
                     this.games[i] = {item_name_to_id:{}, location_name_to_id:{}}
                     this.games[i].item_name_to_id = this.swap(gameData.item_name_to_id);
                     this.games[i].location_name_to_id = this.swap(gameData.location_name_to_id)
+                    //console.log(this.games[i])
                     i++;
                 }
-                
-                //var games = JSON.parse(data[0].games)
-                //console.log(games.Terraria);
+                console.log(this.games[25])
             }
             switch (data[0].type) {
                 case 'ItemSend':
-                    var item = data[0].item.item;
-                    var location = data[0].item.location;
-                    var sender = data[0].item.player;
-                    var receiver = data[0].receiving;
+                    var itemID = data[0].item.item;
+                    var locationID = data[0].item.location;
+                    var senderID = data[0].item.player;
+                    var receiverID = data[0].receiving;
                     var flags = data[0].item.flags;
+
+                    var senderObj = this.players[senderID - 1];
+                    var senderName = senderObj.alias;
+
+                    var receiverObj = this.players[receiverID - 1];
+                    var receiverName = receiverObj.alias;
+
+
+
                     console.log(data[0]);
+                    console.log(senderName, receiverName);
                     break;
                 //case
             }
@@ -93,4 +117,41 @@ export class ArchipelagoClient {
         }
         return ret;
     }
+
+    sendMessage(data) {
+    const hookData = JSON.stringify({
+        content: data,
+    })
+
+    const hookOptions = {
+        hostname: webhookUrl.hostname,
+        path: webhookUrl.pathname,
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(hookData),
+        }
+    };
+
+
+    const request = https.request(hookOptions, (res) => {
+        let resData = '';
+
+        res.on('data', (chunk) => {
+            resData += chunk;
+        });
+
+        res.on('end', () => {
+            console.log(resData);
+        })
+
+    });
+
+    request.on('error', (e) => {
+        console.error("error: ", e);
+    })
+    request.write(hookData);
+    request.end();
+    console.log("ending");
+}
 }
