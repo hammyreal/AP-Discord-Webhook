@@ -65,7 +65,6 @@ export class ArchipelagoClient {
                     var senderName = senderObj.alias;
                     var senderGameName = this.slots[senderID].game;
                     var locationName;
-                    console.log(senderGameName);
                     for (var i = 0; i < this.games.length; i++) {
                         if (this.games[i].name == senderGameName) {
                             locationName = this.games[i].location_name_to_id[locationID]
@@ -88,16 +87,12 @@ export class ArchipelagoClient {
                         out += " sent " + itemName + " to " + receiverName;
                     }
                     out += " (" + locationName + ")"
-                    this.sendMessage(out)
+                    this.sendMessage(out);
+                    console.log(out);
+                    console.log(data);
                     break;
                 //case
             }
-            
-                
-            
-            
-            
-
         });
 
         this.socket.addEventListener('close', event => {
