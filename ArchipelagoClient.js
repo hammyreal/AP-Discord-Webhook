@@ -1,8 +1,8 @@
 
 import * as crypto from 'crypto';
 import { Logger } from './logger.js';
-
-//to get a location/item 
+import { URL } from 'url'
+import * as https from 'https'
 
 export class ArchipelagoClient {
     constructor(url, name, pass) {
@@ -33,6 +33,7 @@ export class ArchipelagoClient {
             //console.log(data[0]);
             if (data[0].cmd == 'Connected') {
                 this.players = data[0].players;
+                this.slots = data[0].slot_info;
                 var getPackagePayload = {
                     'cmd': 'GetDataPackage'
                 }
@@ -43,14 +44,14 @@ export class ArchipelagoClient {
                 //console.log(data[0].data.games);
                 for (var [name, gameData] of Object.entries(data[0].data.games)) {
                     //console.log(name, i);
-                    
-                    this.games[i] = {item_name_to_id:{}, location_name_to_id:{}}
+                    this.games[i] = { name: "", item_name_to_id: {}, location_name_to_id: {} }
+                    this.games[i].name = name;
                     this.games[i].item_name_to_id = this.swap(gameData.item_name_to_id);
                     this.games[i].location_name_to_id = this.swap(gameData.location_name_to_id)
                     //console.log(this.games[i])
                     i++;
                 }
-                console.log(this.games[25])
+                //console.log(this.players[2])
             }
             switch (data[0].type) {
                 case 'ItemSend':
@@ -62,14 +63,32 @@ export class ArchipelagoClient {
 
                     var senderObj = this.players[senderID - 1];
                     var senderName = senderObj.alias;
+                    var senderGameName = this.slots[senderID].game;
+                    var locationName;
+                    console.log(senderGameName);
+                    for (var i = 0; i < this.games.length; i++) {
+                        if (this.games[i].name == senderGameName) {
+                            locationName = this.games[i].location_name_to_id[locationID]
+                        }
+                    }
 
                     var receiverObj = this.players[receiverID - 1];
                     var receiverName = receiverObj.alias;
-
-
-
-                    console.log(data[0]);
-                    console.log(senderName, receiverName);
+                    var receiverGameName = this.slots[receiverID].game;
+                    var itemName
+                    for (var i = 0; i < this.games.length; i++) {
+                        if (this.games[i].name == receiverGameName) {
+                            itemName = this.games[i].item_name_to_id[itemID]
+                        }
+                    }
+                    var out = senderName;
+                    if (receiverName == senderName) {
+                        out += " found their " + itemName;
+                    } else {
+                        out += " sent " + itemName + " to " + receiverName;
+                    }
+                    out += " (" + locationName + ")"
+                    this.sendMessage(out)
                     break;
                 //case
             }
@@ -124,8 +143,8 @@ export class ArchipelagoClient {
     })
 
     const hookOptions = {
-        hostname: webhookUrl.hostname,
-        path: webhookUrl.pathname,
+        hostname: this.webhookUrl.hostname,
+        path: this.webhookUrl.pathname,
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
