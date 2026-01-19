@@ -213,7 +213,7 @@ export class ArchipelagoClient {
     }
 
     reconnectLoop() {
-        sleep(30000);
+        await this.sleep(30000);
         this.createSocket();
     }
 }
