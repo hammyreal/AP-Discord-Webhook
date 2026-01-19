@@ -82,7 +82,9 @@ export class ArchipelagoClient {
                                 itemName = this.games[i].item_name_to_id[itemID]
                             }
                         }
-                        var out = senderName;
+                        var time = Date.now();
+                        time = time.toString().substr(0, time.toString().length - 3);
+                        var out = "<t:" + time + ":t>: " + senderName;
                         if (receiverName == senderName) {
                             out += " found their " + itemName;
                         } else {
