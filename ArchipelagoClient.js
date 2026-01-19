@@ -36,6 +36,7 @@ export class ArchipelagoClient {
 
         this.socket.addEventListener('open', event => {
             console.log("connected");
+            this.sendMessage("Connected on slot " + this.name);
             this.connect();
             this.logger = new Logger();
             this.connected = true;
@@ -117,8 +118,12 @@ export class ArchipelagoClient {
 
         this.socket.addEventListener('close', event => {
             console.log("socket closed:", event.code, event.reason);
-            if (!this.connected) {
+            if (this.connected) {
                 this.sendMessage("Lost connection, will attempt to reconnect every 30 seconds");
+            } else {
+                var curTime = Date.now();
+                var time = new Date(curTime * 1000)
+                console.log("failed reconnect at", time);
             }
             this.connected = false;
             this.reconnectLoop();
@@ -126,8 +131,12 @@ export class ArchipelagoClient {
 
         this.socket.addEventListener('error', error => {
             console.error('WebSocket error:', error);
-            if (!this.connected) {
+            if (this.connected) {
                 this.sendMessage("Lost connection, will attempt to reconnect every 30 seconds");
+            } else {
+                var curTime = Date.now();
+                var time = new Date(curTime * 1000)
+                console.log("failed reconnect at", time);
             }
             this.connected = false;
             this.reconnectLoop();
