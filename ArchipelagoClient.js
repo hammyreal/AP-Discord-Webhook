@@ -6,12 +6,15 @@ import * as https from 'https'
 
 export class ArchipelagoClient {
     constructor(url, name, pass) {
-        this.socket = new WebSocket(url);
+        this.url = url;
+        this.name = name;
+        this.pass = pass;
+        
         process.loadEnvFile();
         this.PORT = process.env.PORT;
 
         this.publicKey = process.env.PUBLICKEY;
-        //const appID
+        //this.appID
 
         this.roomURL = process.env.ROOM;
         this.name = process.env.SLOTNAME;
@@ -21,10 +24,21 @@ export class ArchipelagoClient {
         this.logPath = process.env.LOGFILE;
         this.timezone = process.env.TIMEZONE;
 
+        this.connected = false;
+
+        this.createSocket();
+
+        
+    }
+
+    createSocket() {
+        this.socket = new WebSocket(this.url);
+
         this.socket.addEventListener('open', event => {
             console.log("connected");
-            this.connect(name, pass);
+            this.connect();
             this.logger = new Logger();
+            this.connected = true;
         });
 
         this.socket.addEventListener('message', event => {
@@ -103,16 +117,24 @@ export class ArchipelagoClient {
 
         this.socket.addEventListener('close', event => {
             console.log("socket closed:", event.code, event.reason);
+            if (!this.connected) {
+                this.sendMessage("Lost connection, will attempt to reconnect every 30 seconds");
+            }
+            this.connected = false;
+            this.reconnectLoop();
         });
 
         this.socket.addEventListener('error', error => {
             console.error('WebSocket error:', error);
+            if (!this.connected) {
+                this.sendMessage("Lost connection, will attempt to reconnect every 30 seconds");
+            }
+            this.connected = false;
+            this.reconnectLoop();
         });
-
-        
     }
 
-    connect(name, pass) {
+    connect() {
         var version = {
             'class': 'Version',
             'major': 0,
@@ -121,7 +143,7 @@ export class ArchipelagoClient {
         }
         var payload = {
             'cmd': 'Connect',
-            'password': pass, 'name': name, 'version': version,
+            'password': this.pass, 'name': this.name, 'version': version,
             'tags': ['TextOnly'], 'items_handling': 0b111,
             'uuid': crypto.randomUUID(), 'game': '', 'slot_data': true
         };
@@ -139,39 +161,50 @@ export class ArchipelagoClient {
     }
 
     sendMessage(data) {
-    const hookData = JSON.stringify({
-        content: data,
-    })
-
-    const hookOptions = {
-        hostname: this.webhookUrl.hostname,
-        path: this.webhookUrl.pathname,
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Content-Length': Buffer.byteLength(hookData),
-        }
-    };
-
-
-    const request = https.request(hookOptions, (res) => {
-        let resData = '';
-
-        res.on('data', (chunk) => {
-            resData += chunk;
-        });
-
-        res.on('end', () => {
-            console.log(resData);
+        const hookData = JSON.stringify({
+            content: data,
         })
 
-    });
+        const hookOptions = {
+            hostname: this.webhookUrl.hostname,
+            path: this.webhookUrl.pathname,
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(hookData),
+            }
+        };
 
-    request.on('error', (e) => {
-        console.error("error: ", e);
-    })
-    request.write(hookData);
-    request.end();
-    console.log("ending");
-}
+
+        const request = https.request(hookOptions, (res) => {
+            let resData = '';
+
+            res.on('data', (chunk) => {
+                resData += chunk;
+            });
+
+            res.on('end', () => {
+                console.log(resData);
+            })
+
+        });
+
+        request.on('error', (e) => {
+            console.error("error: ", e);
+        })
+        request.write(hookData);
+        request.end();
+        console.log("ending");
+    }
+
+    sleep(ms) {
+        return new Promise((resolve) => {
+            setTimeout(resolve, ms);
+        });
+    }
+
+    reconnectLoop() {
+        sleep(30000);
+        this.createSocket();
+    }
 }
