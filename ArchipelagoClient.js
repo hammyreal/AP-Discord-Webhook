@@ -55,41 +55,45 @@ export class ArchipelagoClient {
             }
             switch (data[0].type) {
                 case 'ItemSend':
-                    var itemID = data[0].item.item;
-                    var locationID = data[0].item.location;
-                    var senderID = data[0].item.player;
-                    var receiverID = data[0].receiving;
-                    var flags = data[0].item.flags;
+                    var final = "";
+                    for (var j = 0; j < data.length; j++) {
+                        var itemID = data[j].item.item;
+                        var locationID = data[j].item.location;
+                        var senderID = data[j].item.player;
+                        var receiverID = data[j].receiving;
+                        var flags = data[j].item.flags;
 
-                    var senderObj = this.players[senderID - 1];
-                    var senderName = senderObj.alias;
-                    var senderGameName = this.slots[senderID].game;
-                    var locationName;
-                    for (var i = 0; i < this.games.length; i++) {
-                        if (this.games[i].name == senderGameName) {
-                            locationName = this.games[i].location_name_to_id[locationID]
+                        var senderObj = this.players[senderID - 1];
+                        var senderName = senderObj.alias;
+                        var senderGameName = this.slots[senderID].game;
+                        var locationName;
+                        for (var i = 0; i < this.games.length; i++) {
+                            if (this.games[i].name == senderGameName) {
+                                locationName = this.games[i].location_name_to_id[locationID]
+                            }
                         }
-                    }
 
-                    var receiverObj = this.players[receiverID - 1];
-                    var receiverName = receiverObj.alias;
-                    var receiverGameName = this.slots[receiverID].game;
-                    var itemName
-                    for (var i = 0; i < this.games.length; i++) {
-                        if (this.games[i].name == receiverGameName) {
-                            itemName = this.games[i].item_name_to_id[itemID]
+                        var receiverObj = this.players[receiverID - 1];
+                        var receiverName = receiverObj.alias;
+                        var receiverGameName = this.slots[receiverID].game;
+                        var itemName;
+                        for (var i = 0; i < this.games.length; i++) {
+                            if (this.games[i].name == receiverGameName) {
+                                itemName = this.games[i].item_name_to_id[itemID]
+                            }
                         }
+                        var out = senderName;
+                        if (receiverName == senderName) {
+                            out += " found their " + itemName;
+                        } else {
+                            out += " sent " + itemName + " to " + receiverName;
+                        }
+                        out += " (" + locationName + ")"
+                        final += out + "\n";
+                        console.log(out);
                     }
-                    var out = senderName;
-                    if (receiverName == senderName) {
-                        out += " found their " + itemName;
-                    } else {
-                        out += " sent " + itemName + " to " + receiverName;
-                    }
-                    out += " (" + locationName + ")"
-                    this.sendMessage(out);
-                    console.log(out);
-                    console.log(data);
+                    this.sendMessage(final);
+                    console.log(data[0], data[1]);
                     break;
                 //case
             }
