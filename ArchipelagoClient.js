@@ -26,6 +26,8 @@ export class ArchipelagoClient {
 
         this.connected = false;
 
+        this.queue = new Queue();
+
         this.createSocket();
 
         
@@ -43,7 +45,7 @@ export class ArchipelagoClient {
         });
 
         this.socket.addEventListener('message', event => {
-            //console.log("received message:", event.data);
+            console.log("received message");
             var data = JSON.parse(event.data);
             //console.log(data[0]);
             if (data[0].cmd == 'Connected') {
@@ -106,10 +108,12 @@ export class ArchipelagoClient {
                             out += " sent " + itemName + " to " + receiverName;
                         }
                         out += " (" + locationName + ")"
-                        final += out + "\n";
-                        console.log(out);
+                        out += "\n";
+                        //final += out + "\n";
+                        console.log("out:", out);
+                        this.queue.add(out);
                     }
-                    this.sendMessage(final);
+                    //this.sendMessage(final);
                     console.log(data[0], data[1]);
                     break;
                 //case
@@ -215,5 +219,38 @@ export class ArchipelagoClient {
     async reconnectLoop() {
         await this.sleep(30000);
         this.createSocket();
+    }
+}
+
+// https://www.geeksforgeeks.org/javascript/implementation-queue-javascript/
+// i really couldn't be botherd doing this myself tbh
+// plus this solution is way cleaner than anything i could make
+class Queue {
+    constructor() {
+        this.items = [];
+    }
+
+    add(element) {
+        this.items.push(element);
+    }
+
+    pop() {
+        return this.isEmpty() ? "Queue is empty" : this.items.shift();
+    }
+
+    peek() {
+        return this.isEmpty() ? "Queue is empty" : this.items[0];
+    }
+
+    isEmpty() {
+        return this.items.length === 0;
+    }
+
+    size() {
+        return this.items.length;
+    }
+
+    print() {
+        console.log(this.items.join(" -> "));
     }
 }

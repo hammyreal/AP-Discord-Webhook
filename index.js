@@ -65,7 +65,31 @@ clientStuff();
 async function clientStuff() {
 
 	var client = await new ArchipelagoClient("wss://" + roomURL, name, pass);
-	await sleep(5000);
+
+	while (true) {
+
+		var escape = false;
+		var send = false;
+		var out = "";
+		while (!escape) {
+			if (client.queue.isEmpty()) {
+				escape = true;
+				send = false;
+			} else if (out.length > 1800) {
+				escape = true;
+				send = true;
+            } else {
+				out += client.queue.pop();
+				send = true;
+				escape = true;
+            }
+		}
+		if (send) {
+			sendMessage(out);
+        }
+
+		await sleep(500);
+    }
 	//console.log(client.games);
 }
 /*
