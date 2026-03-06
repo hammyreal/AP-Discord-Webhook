@@ -28,4 +28,4 @@ Archipelago room
 
 
 ### Planned future features:
-Discord interactions, allowing users to track items, and maybe more
+None, i really can't stand working with Discord applications and whatever so i'm leaving this how it is
