@@ -74,14 +74,18 @@ async function clientStuff() {
 		while (!escape) {
 			if (client.queue.isEmpty()) {
 				escape = true;
-				send = false;
+				if (out == "") {
+					send = false;
+				} else {
+					send = true;
+				}
 			} else if (out.length > 1800) {
 				escape = true;
 				send = true;
             } else {
 				out += client.queue.pop();
-				send = true;
-				escape = true;
+				send = false;
+				escape = false;
             }
 		}
 		if (send) {
