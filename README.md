@@ -28,4 +28,8 @@ Archipelago room
 
 
 ### Planned future features:
+Caching of DataPackage so it isn't requested on every connection
+
+Spreading out of DataPackage requests as to not be overwhelmed in large rooms
+
 None, i really can't stand working with Discord applications and whatever so i'm leaving this how it is

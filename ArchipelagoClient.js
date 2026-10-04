@@ -47,18 +47,28 @@ export class ArchipelagoClient {
         this.socket.addEventListener('message', event => {
             console.log("received message");
             var data = JSON.parse(event.data);
-            //console.log(data[0]);
+            console.log(data[0]);
             if (data[0].cmd == 'Connected') {
                 this.players = data[0].players;
                 this.slots = data[0].slot_info;
+                this.games = []
+                for (var key of Object.keys(this.slots)) {
+                    var i = parseInt(key) - 1
+                    console.log(key)
+                    if (this.slots[key].type == 1) {
+                        this.games[i] = this.slots[key].game
+                    }
+                }
+                console.log(this.games)
                 var getPackagePayload = {
-                    'cmd': 'GetDataPackage'
+                    'cmd': 'GetDataPackage',
+                    'games': this.games
                 }
                 this.socket.send(JSON.stringify([getPackagePayload]));
             } else if (data[0].cmd == 'DataPackage') {
                 var i = 0;
                 this.games = new Array();
-                //console.log(data[0].data.games);
+                console.log(data[0]);
                 for (var [name, gameData] of Object.entries(data[0].data.games)) {
                     //console.log(name, i);
                     this.games[i] = { name: "", item_name_to_id: {}, location_name_to_id: {} }
@@ -152,7 +162,7 @@ export class ArchipelagoClient {
             'class': 'Version',
             'major': 0,
             'minor': 6,
-            'build': 5
+            'build': 8
         }
         var payload = {
             'cmd': 'Connect',
